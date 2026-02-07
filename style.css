@@ -1,0 +1,77 @@
+body{
+margin:0;
+overflow:hidden;
+font-family:Arial;
+background:black;
+color:white;
+}
+
+/* start screen */
+#startScreen{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:radial-gradient(circle,#000,#020202,#000);
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+z-index:10;
+}
+
+#startScreen h1{
+font-size:60px;
+color:red;
+text-shadow:0 0 30px red;
+}
+
+#startScreen input{
+padding:12px;
+font-size:18px;
+margin:10px;
+border-radius:10px;
+border:none;
+}
+
+#startScreen button{
+padding:15px 30px;
+font-size:18px;
+background:red;
+color:white;
+border:none;
+border-radius:10px;
+cursor:pointer;
+}
+
+.note{
+opacity:.7;
+margin-top:10px;
+}
+
+/* top UI */
+#topBar{
+position:absolute;
+top:10px;
+left:10px;
+z-index:5;
+font-size:20px;
+}
+
+/* attack button */
+#controls{
+position:absolute;
+bottom:30px;
+right:30px;
+z-index:5;
+}
+
+#attackBtn{
+padding:20px;
+font-size:22px;
+border:none;
+border-radius:50%;
+background:crimson;
+color:white;
+}
