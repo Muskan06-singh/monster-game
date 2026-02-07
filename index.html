@@ -1,185 +1,289 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monster Battle Game</title>
+<title>Monster Tree Adventure</title>
 
 <style>
-    body{
-        margin:0;
-        overflow:hidden;
-        background:linear-gradient(to bottom,#0f2027,#203a43,#2c5364);
-        font-family:Arial, sans-serif;
-        color:white;
-        text-align:center;
-    }
+body{
+margin:0;
+background:linear-gradient(#000000,#0f2027,#203a43);
+font-family:Arial;
+color:white;
+text-align:center;
+overflow:hidden;
+}
 
-    h1{
-        margin:10px;
-    }
+#gameCanvas{
+background:radial-gradient(circle,#1b2735,#090a0f);
+display:block;
+margin:auto;
+border:4px solid white;
+border-radius:15px;
+}
 
-    #gameCanvas{
-        background:#111;
-        display:block;
-        margin:0 auto;
-        border:3px solid white;
-    }
+.mobile{
+position:fixed;
+bottom:10px;
+width:100%;
+display:flex;
+justify-content:center;
+gap:10px;
+}
 
-    #info{
-        margin:10px;
-        font-size:18px;
-    }
+.btn{
+width:65px;
+height:65px;
+border-radius:50%;
+border:none;
+font-size:22px;
+background:#ff4081;
+color:white;
+}
 
-    button{
-        padding:10px 20px;
-        font-size:18px;
-        border:none;
-        border-radius:10px;
-        background:#ff4081;
-        color:white;
-        cursor:pointer;
-        margin-top:10px;
-    }
+#startScreen{
+position:absolute;
+width:100%;
+height:100%;
+background:black;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+}
 
-    button:hover{
-        background:#ff1c6d;
-    }
+input{
+padding:12px;
+font-size:18px;
+border-radius:10px;
+border:none;
+margin:10px;
+}
+
+button.start{
+padding:12px 25px;
+font-size:20px;
+background:#00c853;
+color:white;
+border:none;
+border-radius:12px;
+}
 </style>
 </head>
 
 <body>
 
-<h1>👦 Child vs Monster 👹</h1>
-<div id="info">Level: 1 | Use arrow keys to move & SPACE to attack</div>
-<canvas id="gameCanvas" width="700" height="400"></canvas>
-<button onclick="startGame()">Start Game</button>
+<div id="startScreen">
+<h1>🌳 Monster Tree Adventure</h1>
+<p>Enter your name warrior 👧</p>
+<input id="playerName" placeholder="Your name">
+<button class="start" onclick="startGame()">Start Adventure</button>
+</div>
+
+<canvas id="gameCanvas" width="900" height="500"></canvas>
+
+<div class="mobile">
+<button class="btn" ontouchstart="move('left')" ontouchend="stop()">⬅️</button>
+<button class="btn" ontouchstart="move('up')" ontouchend="stop()">⬆️</button>
+<button class="btn" ontouchstart="move('down')" ontouchend="stop()">⬇️</button>
+<button class="btn" ontouchstart="move('right')" ontouchend="stop()">➡️</button>
+<button class="btn" ontouchstart="attack()">🗡️</button>
+</div>
+
+<audio id="bgm" loop>
+<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8c8a73467.mp3">
+</audio>
 
 <script>
-let canvas = document.getElementById("gameCanvas");
-let ctx = canvas.getContext("2d");
+let canvas=document.getElementById("gameCanvas");
+let ctx=canvas.getContext("2d");
+let name="Hero";
 
-let level = 1;
-let gameRunning = false;
+let girl={x:100,y:300,health:100,score:100};
+let monster={x:700,y:300,health:100};
+let boss={x:750,y:250,health:300};
+let tree={x:400,y:260};
+let level=1;
 
-let player = {x:50,y:180,size:30,health:100};
-let monster = {x:600,y:180,size:40,health:100};
-let treeHelper = {x:350,y:100,size:35};
+let moveDir=null;
+let attacking=false;
+let showTree=false;
 
-let keys = {};
-document.addEventListener("keydown", e=>keys[e.key]=true);
-document.addEventListener("keyup", e=>keys[e.key]=false);
+// keyboard
+document.addEventListener("keydown",e=>{
+if(e.key==="ArrowLeft") moveDir="left";
+if(e.key==="ArrowRight") moveDir="right";
+if(e.key==="ArrowUp") moveDir="up";
+if(e.key==="ArrowDown") moveDir="down";
+if(e.key===" ") attacking=true;
+});
+document.addEventListener("keyup",()=>{moveDir=null;attacking=false});
+
+function move(d){moveDir=d}
+function stop(){moveDir=null}
+function attack(){attacking=true;setTimeout(()=>attacking=false,300)}
 
 function startGame(){
-    gameRunning = true;
-    level = 1;
-    player.health = 100;
-    monster.health = 100;
-    gameLoop();
+name=document.getElementById("playerName").value || "Hero";
+document.getElementById("startScreen").style.display="none";
+document.getElementById("bgm").play();
+
+alert("Welcome "+name+" 👧\nMonster Tree will protect you 🌳\nGood luck!");
 }
 
-function drawPlayer(){
-    ctx.fillStyle="cyan";
-    ctx.fillRect(player.x,player.y,player.size,player.size);
-    ctx.fillStyle="white";
-    ctx.fillText("Child",player.x-5,player.y-10);
+function drawGirl(){
+ctx.fillStyle="#ffe0bd";
+ctx.beginPath();
+ctx.arc(girl.x,girl.y-25,12,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="pink";
+ctx.fillRect(girl.x-12,girl.y-20,24,35);
+
+ctx.fillStyle="white";
+for(let i=0;i<6;i++){
+ctx.beginPath();
+ctx.arc(girl.x-10+Math.random()*20,girl.y-18+Math.random()*30,2,0,Math.PI*2);
+ctx.fill();
+}
+
+// sword moving
+if(attacking){
+ctx.strokeStyle="silver";
+ctx.lineWidth=5;
+ctx.beginPath();
+ctx.moveTo(girl.x+15,girl.y-10);
+ctx.lineTo(girl.x+45,girl.y-25+Math.random()*20);
+ctx.stroke();
+}
 }
 
 function drawMonster(){
-    ctx.fillStyle="red";
-    ctx.fillRect(monster.x,monster.y,monster.size,monster.size);
-    ctx.fillText("Monster",monster.x-10,monster.y-10);
+ctx.strokeStyle="white";
+ctx.lineWidth=3;
+ctx.beginPath();
+ctx.arc(monster.x,monster.y-20,14,0,Math.PI*2);
+ctx.stroke();
+
+ctx.fillStyle="red";
+ctx.beginPath();
+ctx.arc(monster.x-5,monster.y-22,3,0,Math.PI*2);
+ctx.arc(monster.x+5,monster.y-22,3,0,Math.PI*2);
+ctx.fill();
+
+ctx.beginPath();
+ctx.moveTo(monster.x,monster.y);
+ctx.lineTo(monster.x,monster.y+30);
+ctx.moveTo(monster.x-12,monster.y+10);
+ctx.lineTo(monster.x+12,monster.y+10);
+ctx.stroke();
+}
+
+function drawBoss(){
+ctx.fillStyle="purple";
+ctx.fillRect(boss.x-30,boss.y-30,60,60);
+ctx.fillStyle="white";
+ctx.fillText("BOSS",boss.x-20,boss.y-40);
 }
 
 function drawTree(){
-    ctx.fillStyle="green";
-    ctx.fillRect(treeHelper.x,treeHelper.y,treeHelper.size,treeHelper.size);
-    ctx.fillText("Monster Tree 🌳",treeHelper.x-25,treeHelper.y-10);
+ctx.fillStyle="#3b1f0b";
+ctx.fillRect(tree.x,tree.y,30,90);
+
+ctx.fillStyle="red";
+ctx.beginPath();
+ctx.arc(tree.x+10,tree.y+35,5,0,Math.PI*2);
+ctx.arc(tree.x+20,tree.y+35,5,0,Math.PI*2);
+ctx.fill();
 }
 
-function movePlayer(){
-    if(keys["ArrowUp"]) player.y-=4;
-    if(keys["ArrowDown"]) player.y+=4;
-    if(keys["ArrowLeft"]) player.x-=4;
-    if(keys["ArrowRight"]) player.x+=4;
+function update(){
+if(moveDir==="left") girl.x-=5;
+if(moveDir==="right") girl.x+=5;
+if(moveDir==="up") girl.y-=5;
+if(moveDir==="down") girl.y+=5;
 
-    // attack
-    if(keys[" "]){
-        if(Math.abs(player.x-monster.x)<50 && Math.abs(player.y-monster.y)<50){
-            monster.health -= 1.5;
-        }
-    }
+// monster follow
+monster.x+=(girl.x-monster.x)*0.02*(level);
+monster.y+=(girl.y-monster.y)*0.02*(level);
 
-    // tree helper heals player
-    if(Math.abs(player.x-treeHelper.x)<40 && Math.abs(player.y-treeHelper.y)<40){
-        player.health += 0.1;
-        if(player.health>100) player.health=100;
-    }
+// attack monster
+if(attacking){
+if(Math.abs(girl.x-monster.x)<60 && Math.abs(girl.y-monster.y)<60){
+monster.health-=3;
+}
 }
 
-function moveMonster(){
-    if(monster.x > player.x) monster.x -= 1 + level*0.3;
-    if(monster.x < player.x) monster.x += 1 + level*0.3;
-    if(monster.y > player.y) monster.y -= 1 + level*0.3;
-    if(monster.y < player.y) monster.y += 1 + level*0.3;
-
-    // monster attack
-    if(Math.abs(player.x-monster.x)<40 && Math.abs(player.y-monster.y)<40){
-        player.health -= 0.2 * level;
-    }
+// monster attack
+if(Math.abs(girl.x-monster.x)<40 && Math.abs(girl.y-monster.y)<40){
+girl.health-=0.3*level;
+girl.score-=0.2;
 }
 
-function drawHealth(){
-    ctx.fillStyle="white";
-    ctx.fillText("Player Health: "+Math.floor(player.health),20,20);
-    ctx.fillText("Monster Health: "+Math.floor(monster.health),520,20);
+// tree help when score low
+if(girl.score<50){
+showTree=true;
+if(Math.abs(girl.x-tree.x)<80){
+girl.health+=0.4;
+monster.health-=0.5;
+}
 }
 
-function nextLevel(){
-    level++;
-    if(level>5){
-        alert("🎉 You defeated all monsters! You win!");
-        gameRunning=false;
-        return;
-    }
+// next level
+if(monster.health<=0){
+level++;
+monster.health=120+level*50;
+monster.x=700;
+monster.y=Math.random()*400;
 
-    monster.health = 100 + level*20;
-    monster.x = 600;
-    monster.y = Math.random()*300;
-
-    player.x = 50;
-    player.y = 180;
+alert("Level "+level+" begins!");
 }
 
-function gameLoop(){
-    if(!gameRunning) return;
+// boss fight
+if(level===5){
+drawBoss();
+boss.x+=(girl.x-boss.x)*0.01;
+boss.y+=(girl.y-boss.y)*0.01;
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    movePlayer();
-    moveMonster();
-
-    drawPlayer();
-    drawMonster();
-    drawTree();
-    drawHealth();
-
-    document.getElementById("info").innerText =
-    "Level: "+level+" | Monster Tree heals you 🌳";
-
-    if(player.health<=0){
-        alert("💀 Game Over!");
-        gameRunning=false;
-        return;
-    }
-
-    if(monster.health<=0){
-        nextLevel();
-    }
-
-    requestAnimationFrame(gameLoop);
+if(attacking && Math.abs(girl.x-boss.x)<70){
+boss.health-=4;
 }
+if(Math.abs(girl.x-boss.x)<50){
+girl.health-=0.5;
+}
+
+if(boss.health<=0){
+alert("🏆 "+name+" saved the world!");
+location.reload();
+}
+}
+
+if(girl.health<=0){
+alert("Game Over 💀");
+location.reload();
+}
+}
+
+function draw(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+drawGirl();
+drawMonster();
+if(showTree) drawTree();
+
+ctx.fillStyle="white";
+ctx.fillText("Player: "+name,20,20);
+ctx.fillText("Score: "+Math.floor(girl.score)+"/100",20,40);
+ctx.fillText("Health: "+Math.floor(girl.health),20,60);
+ctx.fillText("Level: "+level,20,80);
+}
+
+function loop(){
+update();
+draw();
+requestAnimationFrame(loop);
+}
+loop();
 </script>
-
 </body>
 </html>
