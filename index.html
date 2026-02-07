@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monster Battle Game</title>
+
+<style>
+    body{
+        margin:0;
+        overflow:hidden;
+        background:linear-gradient(to bottom,#0f2027,#203a43,#2c5364);
+        font-family:Arial, sans-serif;
+        color:white;
+        text-align:center;
+    }
+
+    h1{
+        margin:10px;
+    }
+
+    #gameCanvas{
+        background:#111;
+        display:block;
+        margin:0 auto;
+        border:3px solid white;
+    }
+
+    #info{
+        margin:10px;
+        font-size:18px;
+    }
+
+    button{
+        padding:10px 20px;
+        font-size:18px;
+        border:none;
+        border-radius:10px;
+        background:#ff4081;
+        color:white;
+        cursor:pointer;
+        margin-top:10px;
+    }
+
+    button:hover{
+        background:#ff1c6d;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>👦 Child vs Monster 👹</h1>
+<div id="info">Level: 1 | Use arrow keys to move & SPACE to attack</div>
+<canvas id="gameCanvas" width="700" height="400"></canvas>
+<button onclick="startGame()">Start Game</button>
+
+<script>
+let canvas = document.getElementById("gameCanvas");
+let ctx = canvas.getContext("2d");
+
+let level = 1;
+let gameRunning = false;
+
+let player = {x:50,y:180,size:30,health:100};
+let monster = {x:600,y:180,size:40,health:100};
+let treeHelper = {x:350,y:100,size:35};
+
+let keys = {};
+document.addEventListener("keydown", e=>keys[e.key]=true);
+document.addEventListener("keyup", e=>keys[e.key]=false);
+
+function startGame(){
+    gameRunning = true;
+    level = 1;
+    player.health = 100;
+    monster.health = 100;
+    gameLoop();
+}
+
+function drawPlayer(){
+    ctx.fillStyle="cyan";
+    ctx.fillRect(player.x,player.y,player.size,player.size);
+    ctx.fillStyle="white";
+    ctx.fillText("Child",player.x-5,player.y-10);
+}
+
+function drawMonster(){
+    ctx.fillStyle="red";
+    ctx.fillRect(monster.x,monster.y,monster.size,monster.size);
+    ctx.fillText("Monster",monster.x-10,monster.y-10);
+}
+
+function drawTree(){
+    ctx.fillStyle="green";
+    ctx.fillRect(treeHelper.x,treeHelper.y,treeHelper.size,treeHelper.size);
+    ctx.fillText("Monster Tree 🌳",treeHelper.x-25,treeHelper.y-10);
+}
+
+function movePlayer(){
+    if(keys["ArrowUp"]) player.y-=4;
+    if(keys["ArrowDown"]) player.y+=4;
+    if(keys["ArrowLeft"]) player.x-=4;
+    if(keys["ArrowRight"]) player.x+=4;
+
+    // attack
+    if(keys[" "]){
+        if(Math.abs(player.x-monster.x)<50 && Math.abs(player.y-monster.y)<50){
+            monster.health -= 1.5;
+        }
+    }
+
+    // tree helper heals player
+    if(Math.abs(player.x-treeHelper.x)<40 && Math.abs(player.y-treeHelper.y)<40){
+        player.health += 0.1;
+        if(player.health>100) player.health=100;
+    }
+}
+
+function moveMonster(){
+    if(monster.x > player.x) monster.x -= 1 + level*0.3;
+    if(monster.x < player.x) monster.x += 1 + level*0.3;
+    if(monster.y > player.y) monster.y -= 1 + level*0.3;
+    if(monster.y < player.y) monster.y += 1 + level*0.3;
+
+    // monster attack
+    if(Math.abs(player.x-monster.x)<40 && Math.abs(player.y-monster.y)<40){
+        player.health -= 0.2 * level;
+    }
+}
+
+function drawHealth(){
+    ctx.fillStyle="white";
+    ctx.fillText("Player Health: "+Math.floor(player.health),20,20);
+    ctx.fillText("Monster Health: "+Math.floor(monster.health),520,20);
+}
+
+function nextLevel(){
+    level++;
+    if(level>5){
+        alert("🎉 You defeated all monsters! You win!");
+        gameRunning=false;
+        return;
+    }
+
+    monster.health = 100 + level*20;
+    monster.x = 600;
+    monster.y = Math.random()*300;
+
+    player.x = 50;
+    player.y = 180;
+}
+
+function gameLoop(){
+    if(!gameRunning) return;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    movePlayer();
+    moveMonster();
+
+    drawPlayer();
+    drawMonster();
+    drawTree();
+    drawHealth();
+
+    document.getElementById("info").innerText =
+    "Level: "+level+" | Monster Tree heals you 🌳";
+
+    if(player.health<=0){
+        alert("💀 Game Over!");
+        gameRunning=false;
+        return;
+    }
+
+    if(monster.health<=0){
+        nextLevel();
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+</script>
+
+</body>
+</html>
